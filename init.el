@@ -53,21 +53,22 @@
       python-shell-interpreter-args "-i --simple-prompt")
   (elpy-enable))
 
+;; Used by pipenv!
 (use-package pyvenv
   :ensure t
   :init
   (setenv "WORKON_HOME" "~/.pyenv/versions"))
 
+;; Kind of feels like pipenv is the preferred way of doing virtual
+;; environments and package management. Stuff goes in ~/.local, it
+;; ties into Projectile and/or directories containing Pipfiles.
+;; Note to self: C-c C-p ...
 (use-package pipenv
   :hook (python-mode . pipenv-mode)
   :init
   (setq
    pipenv-projectile-after-switch-function
    #'pipenv-projectile-after-switch-extended))
-
-;; (require 'auto-virtualenv)
-;; (add-hook 'python-mode-hook 'auto-virtualenv-set-virtualenv)
-
 
 ;; Terminal use vterm
 (use-package vterm
