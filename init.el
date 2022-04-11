@@ -87,19 +87,34 @@
 (require 'ox-publish)
 ;; (require 'ox-rss)
 
+
+
+
+(defvar *blog-post-title*)
+
 (defun get-blog-post-file-path ()
   "Create an org file for a blog post"
   (interactive)
-  (let ((post-title (read-string "Post Title: ")))
-    (expand-file-name (format "%s-%s.org"
-                              (format-time-string "%Y-%m-%d")
-                              (replace-regexp-in-string "\s+" "-" (replace-regexp-in-string "[^[:alnum:]\s]" "" (downcase (string-trim post-title)))))
-                      "~/Projects/blog/posts")))
+  (letrec
+      ((post-title (read-string "Post Title: "))
+       (filepath (expand-file-name
+                  (format "%s-%s.org"
+                          (format-time-string "%Y-%m-%d")
+                          (replace-regexp-in-string "\s+" "-" (replace-regexp-in-string "[^[:alnum:]\s]" "" (downcase (string-trim post-title)))))
+                  ;;                      "~/Projects/blog/posts"))) (cons filepath post-ptitle)))
+                  "~/Projects/blog/posts")))
+    (setf *blog-post-title* post-title)
+    filepath))
 
 (setq org-capture-templates
-      '(("b" "Blog post" entry
+      '(("b" "Blog post" plain
          (file get-blog-post-file-path)
-         "* %?\n\#+title: I want to auto fill this in\n#+date: %T\n* THIS is some TEXT\n")))
+         "#+title: %((lambda () *blog-post-title*))\n#+date: %T\n* THIS is some TEXT\n")))
+
+
+
+
+
 
 (setq org-publish-project-alist
       `(("blog-posts"
