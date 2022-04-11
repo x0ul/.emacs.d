@@ -81,25 +81,68 @@
 (define-key global-map "\C-ca" 'org-agenda)
 (setq org-log-done t)
 (require 'org-journal)
+(use-package org-pomodoro)
+;; blogging
+(use-package weblorg)
+(require 'ox-publish)
+;; (require 'ox-rss)
 
-;; Make life easier finding files
-;;(ido-mode 1)
-;;(ido-everywhere)
+(defun get-blog-post-file-path ()
+  "Create an org file for a blog post"
+  (interactive)
+  (let ((post-title (read-string "Post Title: ")))
+    (expand-file-name (format "%s-%s.org"
+                              (format-time-string "%Y-%m-%d")
+                              (replace-regexp-in-string "\s+" "-" (replace-regexp-in-string "[^[:alnum:]\s]" "" (downcase (string-trim post-title)))))
+                      "~/Projects/blog/posts")))
+
+(setq org-capture-templates
+      '(("b" "Blog post" entry
+         (file get-blog-post-file-path)
+         "* %?\n\#+title: I want to auto fill this in\n#+date: %T\n* THIS is some TEXT\n")))
+
+(setq org-publish-project-alist
+      `(("blog-posts"
+         :with-title nil
+         :base-directory "~/Projects/blog/posts/"
+         :base-extension "org"
+         :recursive t
+         :publishing-directory "~/Projects/blog/html/"
+         :publishing-function org-html-publish-to-html
+         :auto-sitemap t
+         :sitemap-title "low energy blog"
+         :sitemap-filename "index.org"
+         :sitemap-sort-files anti-chronologically
+         :section-numbers nil
+         :with-author nil
+         :with-toc nil
+         :html-doctype "html5"
+         :html-head "<link rel=\"stylesheet\" href=\"/style.css\" type=\"text/css\"/>"
+         :html-head-include-default-style nil
+         :html-head-include-scripts nil
+         :html-preamble "<nav>
+  <a href=\"/\">&lt; low energy blog</a>
+</nav>
+<div id=\"created\">Created: %d</div>
+<div id=\"updated\">Updated: %C</div>"
+         :html-postamble nil
+         )
+
+        ("blog-static"
+         :base-directory "~/Projects/blog/static/"
+         :base-extension ".*"
+         :recursive t
+         :publishing-directory  "~/Projects/blog/html/"
+         :publishing-function org-publish-attachment)
+
+        ("blog" :components ("blog-posts" "blog-static"))))
+
 
 ;; TODO look at vertico and consult
-;; TODO which-key
+;; which-key
 (use-package which-key
   :config
   (which-key-mode 1))
-
-(setq ido-enable-flex-matching t)
-;; Ask to open as root
-(add-to-list 'load-path "~/.emacs.d/lisp")
-(defadvice ido-find-file (after find-file-sudo activate)
-  "Find file as root if necessary."
-  (unless (and buffer-file-name
-               (file-writable-p buffer-file-name))
-    (find-alternate-file (concat "/sudo:root@localhost:" buffer-file-name))))
 
 ;; much better!
 (add-hook 'before-save-hook 'whitespace-cleanup)
