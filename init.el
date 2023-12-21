@@ -20,8 +20,7 @@
 (require 'package)
 (setq package-archives
       '(("melpa" . "https://melpa.org/packages/")
-        ("gnu" . "https://elpa.gnu.org/packages/")
-        ("org" . "https://orgmode.org/elpa/")))
+        ("gnu" . "https://elpa.gnu.org/packages/")))
 (package-initialize)
 (unless package-archive-contents
   (package-refresh-contents))
@@ -70,87 +69,15 @@
    pipenv-projectile-after-switch-function
    #'pipenv-projectile-after-switch-extended))
 
-;; Terminal use vterm
-(use-package vterm
-  :ensure t )
-
 ;; Org mode configuration
 (use-package org)
 (add-hook 'org-mode-hook (lambda() (org-superstar-mode 1)))
 (define-key global-map "\C-cl" 'org-store-link)
 (define-key global-map "\C-ca" 'org-agenda)
 (setq org-log-done t)
-(require 'org-journal)
+(setq org-startup-indented t)
 (use-package org-pomodoro)
-;; blogging
-(use-package weblorg)
-(require 'ox-publish)
-;; (require 'ox-rss)
-
-
-
-
-(defvar *blog-post-title*)
-
-(defun get-blog-post-file-path ()
-  "Create an org file for a blog post"
-  (interactive)
-  (letrec
-      ((post-title (read-string "Post Title: "))
-       (filepath (expand-file-name
-                  (format "%s-%s.org"
-                          (format-time-string "%Y-%m-%d")
-                          (replace-regexp-in-string "\s+" "-" (replace-regexp-in-string "[^[:alnum:]\s]" "" (downcase (string-trim post-title)))))
-                  ;;                      "~/Projects/blog/posts"))) (cons filepath post-ptitle)))
-                  "~/Projects/blog/posts")))
-    (setf *blog-post-title* post-title)
-    filepath))
-
-(setq org-capture-templates
-      '(("b" "Blog post" plain
-         (file get-blog-post-file-path)
-         "#+title: %((lambda () *blog-post-title*))\n#+date: %T\n* THIS is some TEXT\n")))
-
-
-
-
-
-
-(setq org-publish-project-alist
-      `(("blog-posts"
-         :with-title nil
-         :base-directory "~/Projects/blog/posts/"
-         :base-extension "org"
-         :recursive t
-         :publishing-directory "~/Projects/blog/html/"
-         :publishing-function org-html-publish-to-html
-         :auto-sitemap t
-         :sitemap-title "low energy blog"
-         :sitemap-filename "index.org"
-         :sitemap-sort-files anti-chronologically
-         :section-numbers nil
-         :with-author nil
-         :with-toc nil
-         :html-doctype "html5"
-         :html-head "<link rel=\"stylesheet\" href=\"/style.css\" type=\"text/css\"/>"
-         :html-head-include-default-style nil
-         :html-head-include-scripts nil
-         :html-preamble "<nav>
-  <a href=\"/\">&lt; low energy blog</a>
-</nav>
-<div id=\"created\">Created: %d</div>
-<div id=\"updated\">Updated: %C</div>"
-         :html-postamble nil
-         )
-
-        ("blog-static"
-         :base-directory "~/Projects/blog/static/"
-         :base-extension ".*"
-         :recursive t
-         :publishing-directory  "~/Projects/blog/html/"
-         :publishing-function org-publish-attachment)
-
-        ("blog" :components ("blog-posts" "blog-static"))))
+(use-package org-superstar-mode)
 
 
 ;; TODO look at vertico and consult
@@ -220,6 +147,26 @@
   (sleep-for 2)
   (message nil))
 (global-set-key (kbd "C-c t") 'show-current-time)
+
+;; Window navigation (sort of like tmux's)
+(use-package switch-window
+  :ensure t)
+(global-set-key (kbd "C-x o") 'switch-window)
+(global-set-key (kbd "C-x 1") 'switch-window-then-maximize)
+(global-set-key (kbd "C-x 2") 'switch-window-then-split-below)
+(global-set-key (kbd "C-x 3") 'switch-window-then-split-right)
+(global-set-key (kbd "C-x 0") 'switch-window-then-delete)
+
+(global-set-key (kbd "C-x 4 d") 'switch-window-then-dired)
+(global-set-key (kbd "C-x 4 f") 'switch-window-then-find-file)
+(global-set-key (kbd "C-x 4 m") 'switch-window-then-compose-mail)
+(global-set-key (kbd "C-x 4 r") 'switch-window-then-find-file-read-only)
+
+(global-set-key (kbd "C-x 4 C-f") 'switch-window-then-find-file)
+(global-set-key (kbd "C-x 4 C-o") 'switch-window-then-display-buffer)
+
+(global-set-key (kbd "C-x 4 0") 'switch-window-then-kill-buffer)
+
 
 ;; Language servers
 ;;(add-to-list 'elglot-server-programs '(html-mode . ("
@@ -296,3 +243,4 @@
 (global-set-key (kbd "C-c o") 'counsel-outline)
 (global-set-key (kbd "C-c t") 'counsel-load-theme)
 (global-set-key (kbd "C-c F") 'counsel-org-file)
+(put 'upcase-region 'disabled nil)
