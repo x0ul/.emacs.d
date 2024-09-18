@@ -58,9 +58,6 @@
   :config
   (require 'smartparens-config))
 
-(require 'loadhist)
-(file-dependents (feature-file 'cl))
-
 ;; Flycheck, needed for python and others?
 (use-package flycheck
   :ensure t
@@ -75,6 +72,10 @@
 ;;  :config
 ;;  (use-package tree-sitter-langs
 ;;    :ensure t))
+
+
+(use-package ansi-color
+    :hook (compilation-filter . ansi-color-compilation-filter)) 
 
 ;; Elixir
 (defun ensure-elixir-ts-grammar ()
@@ -128,7 +129,8 @@
   :ensure t
   :hook (elixir-ts-mode . lsp)
   :diminish lsp-mode
-  :commands lsp)
+  :commands lsp
+  :config (setq lsp-elixir-suggest-specs nil))
 
 (use-package lsp-ui
   :ensure t
@@ -136,7 +138,12 @@
 
 (use-package yasnippet
   :ensure t
-  :config (yas-global-mode 1))
+  :hook ((text-mode
+          prog-mode
+          conf-mode
+          snippet-mode) . yas-minor-mode-on)
+  :init
+  (setq yas-snippet-dirs "~/.emacs.d/snippets"))
 
 (use-package company
   :ensure t
@@ -321,29 +328,42 @@
   :ensure t
   :diminish
   :bind (("C-c C-r" . ivy-resume)
+         ;; ("C-x b" . ivy-switch-buffer)
          ("C-x B" . ivy-switch-buffer-other-window))
-  :config
-  (setq ivy-use-virtual-buffers t)
-  (setq ivy-count-format "(%d/%d) ")
-  (ivy-mode 1))
+  :custom
+  (ivy-use-virtual-buffers t)
+  (ivy-count-format "(%d/%d) ")
+  (ivy-mode 1)
+  :config (ivy-mode))
+
+(use-package ivy-rich
+  :ensure t
+  :after ivy
+  :config (ivy-rich-mode))
+  ;; :custom(ivy-virtual-abbreviate 'full
+  ;;                                ivy-rich-switch-buffer-align-virtual-buffer t
+  ;;                                ivy-rich-path-style 'abbrev))
+  ;; ;; :config(ivy-set-display-transformer 'ivy-switch-buffer
+  ;;                                     'ivy-rich-switch-buffer-transformer))
 
 (use-package counsel
   :ensure t
-  :bind (("M-x" . counsel-M-x)
-         ("C-x C-f" . counsel-find-file)
-         ("C-x b" . counsel-ibuffer)
+  :after ivy
+  :bind (("C-x C-f" . counsel-find-file)
          ("C-x C-r" . counsel-recentf)
          ("C-c g" . counsel-git)
          ("C-c j" . counsel-git-grep)
          ("C-c k" . counsel-ag)
-         ("C-c l" . counsel-locate)))
+         ("C-c l" . counsel-locate))
+  :config (counsel-mode))
 
 (use-package counsel-projectile
   :ensure t
-  :config
-  (counsel-projectile-mode))
+  :config (counsel-projectile-mode))
+
 (use-package swiper
   :ensure t
+  :after ivy
   :bind (("C-s" . swiper)
          ("C-r" . swiper)))
 
